@@ -65,8 +65,9 @@ func (cfs *FrameSender) sendFrames() {
 			lineLen := (frameSize.X)*3 + 3
 			logrus.Tracef("Line length %d bytes", lineLen)
 
-			lineBytes := make([]byte, lineLen)
+			frameBytes := make([]byte, 0)
 			for lineN := 0; lineN < frameSize.Y; lineN++ {
+				lineBytes := make([]byte, lineLen)
 				lineBytes[0] = byte(lineN)
 				lineBytes[1] = byte(0)
 				lineBytes[2] = byte(frameSize.X - 1)
@@ -78,18 +79,19 @@ func (cfs *FrameSender) sendFrames() {
 					lineBytes[baseOffset+2] = byte(pixelColorB)
 				}
 				logrus.Tracef("Bytes %v", lineBytes)
-				logrus.Debugf("Writing line %d", lineN)
-				written, err := customFrameFile.Write(lineBytes)
-				if err != nil {
-					logrus.Errorf("Error writing line %d: %v", lineN, err)
-				}
-				if written != lineLen {
-					logrus.Warnf("Failed to write bytes, %d written, %d expected", written, lineLen)
-				}
+				frameBytes = append(frameBytes, lineBytes...)
+			}
+			
+			written, err := customFrameFile.Write(frameBytes)
+			if err != nil {
+				logrus.Errorf("Error writing frame %v", err)
+			}
+			if written != len(frameBytes) {
+				logrus.Warnf("Failed to write bytes, %d written, %d expected", written, len(frameBytes))
 			}
 			logrus.Debugln("Frame written")
 
-			_, err := customEffectFile.WriteString(TRIGGER_STRING)
+			_, err = customEffectFile.WriteString(TRIGGER_STRING)
 			if err != nil {
 				logrus.Errorf("Error triggering frame %v", err)
 			}

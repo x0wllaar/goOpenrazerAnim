@@ -22,7 +22,7 @@ var (
 )
 
 func main() {
-	logrus.SetLevel(logrus.InfoLevel)
+	logrus.SetLevel(logrus.DebugLevel)
 	logrus.Infoln("Parsing args")
 	flag.Parse()
 
